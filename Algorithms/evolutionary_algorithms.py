@@ -1,16 +1,22 @@
+
+import gym
 import numpy as np
+from gym import envs
+from Benchmarks.frozen_lake import frozen_lake_objective
+#from keras.models import Sequential
+#from keras.layers import Dense
+
 
 class Evolutionary:
 
     #CITE: this algorithm has been implemented with help of the tutorial available here:
     # https://machinelearningmastery.com/simple-genetic-algorithm-from-scratch-in-python/
     # I am solely using this as a starting point and the algorithm will be modified in the future
-    def genetic_algorithm(self, objective, n_bits, pop_size, n_iter, r_cross, r_mut):
-        # create population of size pop_size, where each item is a bitstring of size n_bits
-        population = [np.random.randint(0, 2, n_bits).tolist() for _ in range(pop_size)]
-        best, best_eval = 0, objective(population[0])
+    def genetic_algorithm(self, objective, n_bits, pop_size, n_iter, r_cross, r_mut, env):
+        population = [np.random.randint(0, 4, n_bits).tolist() for _ in range(pop_size)]
+        best, best_eval = 0, objective(env, population[0])
         for generation in range(n_iter):
-            scores = [objective(c) for c in population]
+            scores = [objective(env, c) for c in population]
             for i in range(pop_size):
                 if scores[i] < best_eval:
                     best, best_eval = population[i], scores[i]
@@ -43,8 +49,15 @@ class Evolutionary:
     def mutation(self, bitstring, r_mut):
         for i in range(len(bitstring)):
             if np.random.rand() < r_mut:
-                bitstring[i] = 1 - bitstring[i]
+                bitstring[i] = np.random.choice(list(range(0, bitstring[i])) + list(range(bitstring[i] + 1, 4)))
 
 if __name__ == '__main__':
     algorithm = Evolutionary()
-    algorithm.selection([1, 2], [3, 4])
+    env = gym.make('FrozenLake-v1', is_slippery=False)
+    n_episodes = 5000
+    n_bits, pop_size, n_iter, r_cross = 16, 100, 100, 0.9
+    r_mut = 1.0 / float(n_bits)
+    best, score = algorithm.genetic_algorithm(frozen_lake_objective, n_bits, pop_size, n_iter, r_cross, r_mut, env)
+    print('f(%s) = %f' % (best, score))
+
+
