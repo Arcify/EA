@@ -3,8 +3,6 @@ import gym
 import numpy as np
 from gym import envs
 from Benchmarks.frozen_lake import frozen_lake_objective
-#from keras.models import Sequential
-#from keras.layers import Dense
 
 
 class Evolutionary:
@@ -13,7 +11,7 @@ class Evolutionary:
     # https://machinelearningmastery.com/simple-genetic-algorithm-from-scratch-in-python/
     # I am solely using this as a starting point and the algorithm will be modified in the future
     def genetic_algorithm(self, objective, n_bits, pop_size, n_iter, r_cross, r_mut, env):
-        population = [np.random.randint(0, 4, n_bits).tolist() for _ in range(pop_size)]
+        population = [np.random.rand(n_bits).tolist() for _ in range(pop_size)]
         best, best_eval = 0, objective(env, population[0])
         for generation in range(n_iter):
             scores = [objective(env, c) for c in population]
