@@ -2,7 +2,7 @@
 import gym
 import numpy as np
 from gym import envs
-from Benchmarks.frozen_lake import frozen_lake_objective
+from Benchmarks.frozen_lake import frozen_lake_objective, run_env
 from keras.models import Model
 from keras.layers import Input
 from keras.layers import Dense
@@ -14,7 +14,7 @@ class Evolutionary:
     # https://machinelearningmastery.com/simple-genetic-algorithm-from-scratch-in-python/
     # I am solely using this as a starting point and the algorithm will be modified in the future
     def genetic_algorithm(self, objective, n_bits, pop_size, n_iter, r_cross, r_mut, env):
-        model = self.neural_network()
+        model = self.frozen_lake_neural_network()
         population = [np.random.rand(n_bits).tolist() for _ in range(pop_size)]
         best, best_eval = 0, objective(env, population[0], model)
         for generation in range(n_iter):
@@ -54,20 +54,31 @@ class Evolutionary:
             if np.random.rand() < r_mut:
                 bitstring[i] = np.random.rand()
 
-    def neural_network(self):
+    def frozen_lake_neural_network(self):
         input = Input(shape=(16,))
         output = Dense(1, activation='linear')(input)
         model = Model(inputs=input, outputs=output)
         model.compile(loss='mse', optimizer='adam')
         return model
 
+    def breakout_neural_network(self):
+        input = Input(shape=(210, 160, 3))
+        output = Dense(1, activation='linear')(input)
+        model = Model(inputs=input, outputs=output)
+        model.compile(loss='mse', optimizer='adam')
+        return model
+
 if __name__ == '__main__':
+    # print(envs.registry.all())
     algorithm = Evolutionary()
-    env = gym.make('FrozenLake-v1', is_slippery=False)
-    n_episodes = 5000
-    n_bits, pop_size, n_iter, r_cross = 16, 100, 100, 0.9
+    #env = gym.make('FrozenLake-v1', is_slippery=False)
+    env = gym.make('Breakout-v4')
+    state = env.reset()
+    next_state, reward, terminated, info = env.step(0)
+    print("state: " + str(next_state.shape))
+    n_bits, pop_size, n_iter, r_cross = 16, 100, 10, 0.9
     r_mut = 1.0 / float(n_bits)
     best, score = algorithm.genetic_algorithm(frozen_lake_objective, n_bits, pop_size, n_iter, r_cross, r_mut, env)
-    print('f(%s) = %f' % (best, score))
+    run_env(env, best, algorithm.neural_network())
 
 

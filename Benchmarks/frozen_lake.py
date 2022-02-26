@@ -24,7 +24,6 @@ def frozen_lake_objective(environment, genome, model):
             terminated = True
         state = next_state
         states_survived += 1
-    print(-total_reward * 50 - states_survived)
     return -total_reward * 50 - states_survived
 
 def get_observation_space(observation):
@@ -45,3 +44,16 @@ def get_action(prediction):
         return 2
     else:
         return 3
+
+def run_env(environment, weights, model):
+    reshaped_weights = [[i] for i in weights]
+    model.layers[1].set_weights([np.array(reshaped_weights), np.array([0])])
+    terminated = False
+    state = environment.reset()
+    while not terminated:
+        environment.render()
+        observations = get_observation_space(state)
+        prediction = model.predict([observations])
+        action = get_action(prediction)
+        next_state, reward, terminated, info = environment.step(action)
+        state = next_state
