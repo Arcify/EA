@@ -3,6 +3,9 @@ import gym
 import numpy as np
 from gym import envs
 from Benchmarks.frozen_lake import frozen_lake_objective
+from keras.models import Model
+from keras.layers import Input
+from keras.layers import Dense
 
 
 class Evolutionary:
@@ -11,10 +14,12 @@ class Evolutionary:
     # https://machinelearningmastery.com/simple-genetic-algorithm-from-scratch-in-python/
     # I am solely using this as a starting point and the algorithm will be modified in the future
     def genetic_algorithm(self, objective, n_bits, pop_size, n_iter, r_cross, r_mut, env):
+        model = self.neural_network()
         population = [np.random.rand(n_bits).tolist() for _ in range(pop_size)]
-        best, best_eval = 0, objective(env, population[0])
+        best, best_eval = 0, objective(env, population[0], model)
         for generation in range(n_iter):
-            scores = [objective(env, c) for c in population]
+            print(generation)
+            scores = [objective(env, c, model) for c in population]
             for i in range(pop_size):
                 if scores[i] < best_eval:
                     best, best_eval = population[i], scores[i]
@@ -47,7 +52,14 @@ class Evolutionary:
     def mutation(self, bitstring, r_mut):
         for i in range(len(bitstring)):
             if np.random.rand() < r_mut:
-                bitstring[i] = np.random.choice(list(range(0, bitstring[i])) + list(range(bitstring[i] + 1, 4)))
+                bitstring[i] = np.random.rand()
+
+    def neural_network(self):
+        input = Input(shape=(16,))
+        output = Dense(1, activation='linear')(input)
+        model = Model(inputs=input, outputs=output)
+        model.compile(loss='mse', optimizer='adam')
+        return model
 
 if __name__ == '__main__':
     algorithm = Evolutionary()

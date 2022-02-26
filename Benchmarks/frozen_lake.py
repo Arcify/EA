@@ -7,23 +7,25 @@ from keras.layers import Input
 from keras.layers import Dense
 
 
-def frozen_lake_objective(environment, genome):
-    input = Input(shape=(16,))
-    output = Dense(1, activation = 'sigmoid')(input)
-    model = Model(inputs = input, outputs = output)
-    model.compile(loss='mse', optimizer='adam')
-    #model.layers[1].set_weights(genome)
+def frozen_lake_objective(environment, genome, model):
+    reshaped_genome = [[i] for i in genome]
+    model.layers[1].set_weights([np.array(reshaped_genome), np.array([0])])
     total_reward = 0
     terminated = False
     state = environment.reset()
+    states_survived = 0
     while not terminated:
         observations = get_observation_space(state)
         prediction = model.predict([observations])
         action = get_action(prediction)
         next_state, reward, terminated, info = environment.step(action)
         total_reward += reward
+        if next_state <= state:
+            terminated = True
         state = next_state
-    return -total_reward
+        states_survived += 1
+    print(-total_reward * 50 - states_survived)
+    return -total_reward * 50 - states_survived
 
 def get_observation_space(observation):
     observations = []
