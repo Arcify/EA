@@ -3,6 +3,7 @@ import gym
 import numpy as np
 from gym import envs
 from Benchmarks.frozen_lake import frozen_lake_objective, run_env
+from Benchmarks.breakout import breakout_objective
 from keras.models import Model
 from keras.layers import Input
 from keras.layers import Dense
@@ -12,9 +13,10 @@ class Evolutionary:
 
     #CITE: this algorithm has been implemented with help of the tutorial available here:
     # https://machinelearningmastery.com/simple-genetic-algorithm-from-scratch-in-python/
-    # I am solely using this as a starting point and the algorithm will be modified in the future
     def genetic_algorithm(self, objective, n_bits, pop_size, n_iter, r_cross, r_mut, env):
-        model = self.frozen_lake_neural_network()
+        #model = self.frozen_lake_neural_network()
+        model = self.breakout_neural_network()
+        print(model.layers[1].get_weights())
         population = [np.random.rand(n_bits).tolist() for _ in range(pop_size)]
         best, best_eval = 0, objective(env, population[0], model)
         for generation in range(n_iter):
@@ -62,7 +64,7 @@ class Evolutionary:
         return model
 
     def breakout_neural_network(self):
-        input = Input(shape=(210, 160, 3))
+        input = Input(shape=(100800,))
         output = Dense(1, activation='linear')(input)
         model = Model(inputs=input, outputs=output)
         model.compile(loss='mse', optimizer='adam')
@@ -70,15 +72,15 @@ class Evolutionary:
 
 if __name__ == '__main__':
     # print(envs.registry.all())
-    algorithm = Evolutionary()
     #env = gym.make('FrozenLake-v1', is_slippery=False)
+    algorithm = Evolutionary()
     env = gym.make('Breakout-v4')
     state = env.reset()
     next_state, reward, terminated, info = env.step(0)
     print("state: " + str(next_state.shape))
-    n_bits, pop_size, n_iter, r_cross = 16, 100, 10, 0.9
+    n_bits, pop_size, n_iter, r_cross = 100800, 100, 10, 0.9
     r_mut = 1.0 / float(n_bits)
-    best, score = algorithm.genetic_algorithm(frozen_lake_objective, n_bits, pop_size, n_iter, r_cross, r_mut, env)
+    best, score = algorithm.genetic_algorithm(breakout_objective, n_bits, pop_size, n_iter, r_cross, r_mut, env)
     run_env(env, best, algorithm.neural_network())
 
 
