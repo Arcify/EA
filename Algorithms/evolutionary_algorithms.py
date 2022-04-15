@@ -4,9 +4,9 @@ import numpy as np
 from gym import envs
 from Benchmarks.frozen_lake import frozen_lake_objective, run_env
 from Benchmarks.breakout import breakout_objective
-from keras.models import Model
-from keras.layers import Input
-from keras.layers import Dense
+from keras.models import Sequential
+from keras.layers import Input, Dense, Flatten
+import tensorflow as tf
 
 
 class Evolutionary:
@@ -57,17 +57,25 @@ class Evolutionary:
                 bitstring[i] = np.random.rand()
 
     def frozen_lake_neural_network(self):
-        input = Input(shape=(16,))
-        output = Dense(1, activation='linear')(input)
-        model = Model(inputs=input, outputs=output)
-        model.compile(loss='mse', optimizer='adam')
+        model = Sequential()
+        model.add(Flatten())
+        model.add(Dense(128, activation=tf.nn.relu))
+        model.add(Dense(128, activation=tf.nn.relu))
+        model.add(Dense(375, activation=tf.nn.softmax))
+        model.compile(optimizer='adam',
+                      loss='mse',
+                      metrics=['accuracy'])
         return model
 
     def breakout_neural_network(self):
-        input = Input(shape=(100800,))
-        output = Dense(1, activation='linear')(input)
-        model = Model(inputs=input, outputs=output)
-        model.compile(loss='mse', optimizer='adam')
+        model = Sequential()
+        model.add(Flatten())
+        model.add(Dense(128, activation=tf.nn.relu))
+        model.add(Dense(128, activation=tf.nn.relu))
+        model.add(Dense(375, activation=tf.nn.softmax))
+        model.compile(optimizer='adam',
+                      loss='mse',
+                      metrics=['accuracy'])
         return model
 
 if __name__ == '__main__':
